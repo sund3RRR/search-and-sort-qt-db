@@ -1,37 +1,28 @@
-import sys, pypyodbc, os
+import sys, sqlite3
 from PyQt6 import QtCore, QtGui, QtWidgets
 from form.form import Ui_MainWindow
 
 
-def db_connect() -> pypyodbc.connect:
-    pypyodbc.lowercase = False
-
-    conn = pypyodbc.connect(
-        "Driver={Microsoft Access Driver (*.mdb, *.accdb)};" +
-        rf"Dbq={os.path.dirname(os.path.realpath(__file__))}\data\students_db.accdb;")
-    return conn
-
-
-def get_students_table(cursor :pypyodbc.Cursor):
+def get_students_table():
     cursor.execute("SELECT * FROM Студенты")
 
     return cursor.fetchall()
 
 
-def get_faculty_table(cursor :pypyodbc.Cursor):
+def get_faculty_table():
     cursor.execute("SELECT * FROM Факультеты")
 
     return cursor.fetchall()
 
 
-def get_groups_table(cursor :pypyodbc.Cursor):
+def get_groups_table():
     cursor.execute("SELECT * FROM Группы")
 
     return cursor.fetchall()
 
 
 class App(Ui_MainWindow):
-    def __init__(self, MainWindow, conn :pypyodbc.connect) -> None:
+    def __init__(self, MainWindow, conn) -> None:
         super().__init__()
         self.setupUi(MainWindow)
 
@@ -39,9 +30,9 @@ class App(Ui_MainWindow):
         self.last_col = 0
         self.need_reverse = False  
 
-        self.student_data = get_students_table(conn.cursor())
-        self.group_data = get_groups_table(conn.cursor())
-        self.faculty_data = get_faculty_table(conn.cursor())
+        self.student_data = get_students_table()
+        self.group_data = get_groups_table()
+        self.faculty_data = get_faculty_table()
 
         self.set_table_data(self.student_data, self.student_table, True)
         self.set_table_data(self.group_data, self.group_table, True)
@@ -102,7 +93,8 @@ class App(Ui_MainWindow):
 
 
 if __name__ == "__main__":
-    conn = db_connect()
+    conn = sqlite3.connect("data/students.db")
+    cursor = conn.cursor()
     
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
